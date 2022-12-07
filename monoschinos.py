@@ -1,3 +1,4 @@
+from unidecode import unidecode
 from bs4 import BeautifulSoup
 from base64 import b64decode
 from requests import get
@@ -6,7 +7,7 @@ useragent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML
 
 
 def request_content(url):
-    r = get(url, timeout=30, headers={"User-Agent": useragent})
+    r = get(url, timeout=10, headers={"User-Agent": useragent})
     soup = BeautifulSoup(r.content, "html.parser")
     return soup
 
@@ -53,8 +54,8 @@ def search_anime(query, page=None):
         img = s.find("img", {"class": "animemainimg"}).get("src")
         url = s.find("a").get("href")
         anime_result.append({
-            "title": title,
-            "info": info,
+            "title": unidecode(title),
+            "info": unidecode(info),
             "img": img,
             "url": url
         })
@@ -77,8 +78,8 @@ def get_seasonal(page=None):
         info = list.find("span", {"class": "seriesinfo"}).text
         img = list.find("img", {"class": "lozad"}).get("data-src")
         url = list.find("a").get("href")
-        animes[title] = {
-            "info": info,
+        animes[unidecode(title)] = {
+            "info": unidecode(info),
             "img": img,
             "url": url
         }
@@ -103,17 +104,18 @@ def get_daily():
             img = anime.find("img", {"class": "lozad"}).get("data-src")
             url = anime.find("a").get("href")
             tags = anime.find_all('button')
+            
             for tag in tags:
-                tags_arr.append(tag.text)
+                tags_arr.append(unidecode(tag.text))
 
-            single_day[title] = {
-                "sinopsis": sinopsis,
-                "episode": episode,
+            single_day[unidecode(title)] = {
+                "sinopsis": unidecode(sinopsis),
+                "episode": unidecode(episode),
                 "img": img,
                 "url": url,
                 "tags": tags_arr
             }
-        whole_week[day_name] = single_day
+        whole_week[unidecode(day_name)] = single_day
 
     return whole_week
 
@@ -131,7 +133,7 @@ def get_info(url):
     genres = all.find_all("ol", {"class": "breadcrumb"})[0].find_all("li", {"class": "breadcrumb-item"})
 
     for genre in genres:
-        genres_arr.append(genre.text)
+        genres_arr.append(unidecode(genre.text))
 
     info["genres"] = genres_arr
 
@@ -141,7 +143,7 @@ def get_info(url):
         img = episode.find("img", {"class": "lozad animeimghv"}).get("data-src")
         url = episode.find("a").get("href")
         episodes.append({
-            "name": name[:-1],
+            "name": unidecode(name[:-1]),
             "url": url,
             "thumbnail": img
         })
