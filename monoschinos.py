@@ -25,7 +25,7 @@ def get_recent():
 
 
 def get_player_links(url):
-    video_urls = {}
+    video_servers = []
     soup = request_content(url)
 
     players = soup.find_all("p", {"class": "play-video"})
@@ -33,10 +33,11 @@ def get_player_links(url):
         encoded_link = player.get("data-player")
         decoded_link = b64decode(encoded_link).decode("utf-8")
         decoded_link = decoded_link[decoded_link.find("url=")+4:]
-        video_urls[player.text] = (
-            {"url": decoded_link}
-        )
-    return video_urls
+        video_servers.append({
+            "name": player.text,
+            "url": decoded_link
+        })
+    return video_servers
 
 
 def search_anime(query, page=None):
@@ -62,6 +63,7 @@ def search_anime(query, page=None):
 
     return anime_result
 
+
 def get_seasonal(page=None):
     animes = {}
     page_url = "https://monoschinos2.com/emision"
@@ -85,14 +87,16 @@ def get_seasonal(page=None):
         }
     return animes
 
-def get_daily():
+
+def get_weekly():
     whole_week = {}
-    
+
     page_url = "https://monoschinos2.com/calendario"
     soup = request_content(page_url)
     week = soup.find_all("div", {"class": "accordionItem close"})
     for day in week:
-        day_name = day.find("h1", {"class": "accordionItemHeading"}).text.replace(" ", "").lower()
+        day_name = day.find(
+            "h1", {"class": "accordionItemHeading"}).text.replace(" ", "").lower()
         anime_list = day.find_all("div", {"class": "series"})
         single_day = {}
         for anime in anime_list:
@@ -104,7 +108,7 @@ def get_daily():
             img = anime.find("img", {"class": "lozad"}).get("data-src")
             url = anime.find("a").get("href")
             tags = anime.find_all('button')
-            
+
             for tag in tags:
                 tags_arr.append(unidecode(tag.text))
 
@@ -119,6 +123,7 @@ def get_daily():
 
     return whole_week
 
+
 def get_info(url):
     info = {}
     episodes = []
@@ -126,11 +131,14 @@ def get_info(url):
     soup = request_content(url)
     all = soup.find("div", {"class": "heromain"})
     info["title"] = all.find("h1", {"class": "mobh1"}).text
-    info["sinopsis"] = all.find("p", {"class": "textComplete"}).text.replace(" Ver menos", "")
+    info["sinopsis"] = all.find(
+        "p", {"class": "textComplete"}).text.replace(" Ver menos", "")
     info["img"] = all.find("div", {"class": "herobg"}).find("img").get("src")
     info["rating"] = all.find("div", {"class": "chapterpic"}).find("p").text
-    info["release_date"] = all.find_all("ol", {"class": "breadcrumb"})[1].find("li", {"class": "breadcrumb-item"}).text
-    genres = all.find_all("ol", {"class": "breadcrumb"})[0].find_all("li", {"class": "breadcrumb-item"})
+    info["release_date"] = all.find_all("ol", {"class": "breadcrumb"})[
+        1].find("li", {"class": "breadcrumb-item"}).text
+    genres = all.find_all("ol", {"class": "breadcrumb"})[
+        0].find_all("li", {"class": "breadcrumb-item"})
 
     for genre in genres:
         genres_arr.append(unidecode(genre.text))
@@ -140,7 +148,8 @@ def get_info(url):
     episode_list = soup.find_all("div", {"class": "col-item"})
     for episode in episode_list:
         name = episode.find("p", {"class": "animetitles"}).text
-        img = episode.find("img", {"class": "lozad animeimghv"}).get("data-src")
+        img = episode.find(
+            "img", {"class": "lozad animeimghv"}).get("data-src")
         url = episode.find("a").get("href")
         episodes.append({
             "name": unidecode(name[:-1]),
