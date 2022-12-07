@@ -2,7 +2,7 @@
 web scrapping api for monoschinos
 
 Requires:
-bs4, base64, requests
+bs4, base64, requests, unidecode
 
 Tested on Python 3.10.6
 
